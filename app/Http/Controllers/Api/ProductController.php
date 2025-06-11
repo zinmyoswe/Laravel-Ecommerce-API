@@ -36,6 +36,25 @@ class ProductController extends Controller
         return response()->json($products);
     }
 
+    // public function update(Request $request, $id)
+    // {
+    //     $product = Product::find($id);
+
+    //     if (!$product) {
+    //         return response()->json(['message' => 'Product not found'], 404);
+    //     }
+
+    //     $validated = $request->validate([
+    //         'sameproductid' => 'nullable|exists:products,productid',
+            
+    //     ]);
+
+    //     $product->sameproductid = $validated['sameproductid'];
+    //     $product->save();
+
+    //     return response()->json(['message' => 'Product updated successfully', 'product' => $product]);
+    // }
+
     public function update(Request $request, $id)
     {
         $product = Product::find($id);
@@ -45,13 +64,30 @@ class ProductController extends Controller
         }
 
         $validated = $request->validate([
+            'productname' => 'nullable|string',
+            'productimage' => 'nullable|url',
+            'productimages' => 'nullable|array',
+            'productimages.*' => 'url',
+            'productvideo' => 'nullable|url',
+            'category_id' => 'nullable|exists:categories,categoryid',
+            'subcategory_id' => 'nullable|exists:subcategories,subcategoryid',
+            'size' => 'nullable|string',
+            'color' => 'nullable|string',
+            'price' => 'nullable|numeric',
+            'discount' => 'nullable|numeric',
+            'stock' => 'nullable|integer',
+            'description' => 'nullable|string',
+            'gender' => 'nullable|string',
+            'adminid' => 'nullable|integer',
             'sameproductid' => 'nullable|exists:products,productid',
         ]);
 
-        $product->sameproductid = $validated['sameproductid'];
-        $product->save();
+        $product->update($validated);
 
-        return response()->json(['message' => 'Product updated successfully', 'product' => $product]);
+        return response()->json([
+            'message' => 'Product updated successfully',
+            'product' => $product
+        ]);
     }
 
     public function updateSimilarProducts(Request $request, $id)

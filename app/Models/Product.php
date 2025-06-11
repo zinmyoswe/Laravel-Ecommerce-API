@@ -23,6 +23,7 @@ class Product extends Model
         'description',
         'gender',
         'adminid',
+        'sameproductid',
     ];
 
     protected $casts = [
