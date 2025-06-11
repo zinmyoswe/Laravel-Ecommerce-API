@@ -10,8 +10,8 @@ Route::prefix('products')->group(function () {
     Route::get('/{id}', [ProductController::class, 'show']); // Product detail
     Route::get('/category/{categoryId}', [ProductController::class, 'byCategory']); // Filter by category
     Route::get('/subcategory/{subcategoryId}', [ProductController::class, 'bySubcategory']); // Filter by subcategory
-    Route::put('/products/{id}', [ProductController::class, 'update']);
-    Route::put('/products/{id}/similar', [ProductController::class, 'updateSimilarProducts']);
+    Route::put('/{id}', [ProductController::class, 'update']);
+    Route::put('/{id}/similar', [ProductController::class, 'updateSimilarProducts']);
 
 
 });

@@ -28,7 +28,10 @@ class SubcategorySeeder extends Seeder
         ];
 
         foreach ($subcategories as $name) {
-            Subcategory::create(['subcategoryname' => $name]);
+             Subcategory::updateOrCreate(
+                ['subcategoryname' => $name],
+                ['created_at' => now(), 'updated_at' => now()]
+            );
         }
     }
 }

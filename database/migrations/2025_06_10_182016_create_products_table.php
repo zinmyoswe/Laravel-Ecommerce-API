@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('productvideo')->nullable();
             $table->unsignedBigInteger('category_id');
             $table->unsignedBigInteger('subcategory_id');
-            $table->enum('size', ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL']);
             $table->string('color', 50);;
             $table->decimal('price', 8, 2);
             $table->decimal('discount', 5, 2)->default(0.00);

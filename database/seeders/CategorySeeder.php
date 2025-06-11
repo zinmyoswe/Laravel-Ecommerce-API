@@ -23,10 +23,18 @@ class CategorySeeder extends Seeder
             foreach ($subNames as $subName) {
                 $subcategory = Subcategory::where('subcategoryname', $subName)->first();
                 if ($subcategory) {
-                    Category::create([
-                        'categoryname' => $categoryName,
-                        'subcategoryid' => $subcategory->subcategoryid,
-                    ]);
+                    Category::updateOrCreate(
+                        [
+                            'categoryname' => $categoryName,
+                            'subcategoryid' => $subcategory->subcategoryid,
+                        ],
+                        [
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]
+                    );
+                } else {
+                    logger("Subcategory '{$subName}' not found for category '{$categoryName}'");
                 }
             }
         }
