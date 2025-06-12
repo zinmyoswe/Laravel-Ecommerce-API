@@ -16,16 +16,21 @@ Route::prefix('products')->group(function () {
 
 });
 
+// Categories
 Route::prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']); // List categories
     Route::get('/{id}', [CategoryController::class, 'show']); // Category detail
-    Route::post('categories', [CategoryController::class, 'store']);
-    Route::put('categories/{id}', [CategoryController::class, 'update']);
-    Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
+    Route::post('/', [CategoryController::class, 'store']); // ✅ fixed path
+    Route::put('/{id}', [CategoryController::class, 'update']); // ✅ fixed path
+    Route::delete('/{id}', [CategoryController::class, 'destroy']); // ✅ fixed path
 });
 
+// Subcategories
 Route::prefix('subcategories')->group(function () {
     Route::get('/', [SubcategoryController::class, 'index']); // List subcategories
     Route::get('/{id}', [SubcategoryController::class, 'show']); // Subcategory detail
+    Route::post('/', [SubcategoryController::class, 'store']); // ✅ fixed path
+    Route::put('/{id}', [SubcategoryController::class, 'update']); // ✅ fixed path
+    Route::delete('/{id}', [SubcategoryController::class, 'destroy']); // ✅ fixed path
 });
 
