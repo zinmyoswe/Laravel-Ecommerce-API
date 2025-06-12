@@ -19,6 +19,9 @@ Route::prefix('products')->group(function () {
 Route::prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']); // List categories
     Route::get('/{id}', [CategoryController::class, 'show']); // Category detail
+    Route::post('categories', [CategoryController::class, 'store']);
+    Route::put('categories/{id}', [CategoryController::class, 'update']);
+    Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
 });
 
 Route::prefix('subcategories')->group(function () {
