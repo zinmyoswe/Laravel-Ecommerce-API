@@ -99,4 +99,25 @@ class ProductController extends Controller
             'similar_products' => $product->similarProducts()->get()
         ]);
     }
+
+
+    // filter Low-High, High-low, newest
+    public function filter(Request $request)
+        {
+            $sort = $request->query('sort');
+
+            $query = Product::query();
+
+            if ($sort === 'price_asc') {
+                $query->orderBy('price', 'asc');
+            } elseif ($sort === 'price_desc') {
+                $query->orderBy('price', 'desc');
+            } elseif ($sort === 'newest') {
+                $query->orderBy('created_at', 'desc');
+            }
+
+            return response()->json(
+                $query->with(['category', 'subcategory', 'sizes'])->get()
+            );
+        }
 }
