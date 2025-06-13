@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\SubcategoryController;
+use App\Http\Controllers\Api\CartController;
 
 Route::prefix('products')->group(function () {
     Route::get('/', [ProductController::class, 'index']); // List all products
@@ -34,5 +35,15 @@ Route::prefix('subcategories')->group(function () {
     Route::post('/', [SubcategoryController::class, 'store']); // ✅ fixed path
     Route::put('/{id}', [SubcategoryController::class, 'update']); // ✅ fixed path
     Route::delete('/{id}', [SubcategoryController::class, 'destroy']); // ✅ fixed path
+});
+
+
+// ✅ Cart Routes
+Route::prefix('cart')->group(function () {
+    Route::get('/', [CartController::class, 'index']);
+    Route::post('/', [CartController::class, 'store']);
+    Route::put('/{product_id}', [CartController::class, 'update']);
+    Route::delete('/{product_id}', [CartController::class, 'destroy']);
+    Route::get('/session/{session_id}', [CartController::class, 'showBySession']);
 });
 
