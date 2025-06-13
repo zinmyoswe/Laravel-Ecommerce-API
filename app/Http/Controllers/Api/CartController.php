@@ -23,44 +23,109 @@ class CartController extends Controller
     }
 
     // Add to cart
+    // public function store(Request $request)
+    // {
+    //     $request->validate([
+    //         'product_id' => 'required|exists:products,productid',
+    //         'quantity' => 'required|integer|min:1',
+    //         'size' => 'required|string',
+    //         'session_id' => 'nullable|string',
+    //     ]);
+
+    //     $quantity = $request->quantity;
+    //     $productId = $request->product_id;
+    //     $size = $request->size;
+
+    //     if (auth()->check()) {
+    //         // Authenticated user → store in DB
+    //         $cart = Cart::updateOrCreate(
+    //             [
+    //                 'user_id' => auth()->id(),
+    //                 'product_id' => $productId,
+    //                 'size' => $size,
+    //             ],
+    //             ['quantity' => \DB::raw('quantity + ' . $quantity)]
+    //         );
+
+    //         return response()->json(['message' => 'Added to user cart', 'data' => $cart]);
+    //     } else {
+    //         // Guest user → store in DB using session_id
+    //         $sessionId = $request->session_id;
+
+    //         $cart = Cart::updateOrCreate(
+    //             [
+    //                 'session_id' => $sessionId,
+    //                 'product_id' => $productId,
+    //                 'size' => $size,
+    //             ],
+    //             ['quantity' => \DB::raw('quantity + ' . $quantity)]
+    //         );
+
+    //         return response()->json(['message' => 'Added to guest cart (DB)', 'data' => $cart]);
+    //     }
+    // }
+
     public function store(Request $request)
-    {
-        $request->validate([
-            'product_id' => 'required|exists:products,productid',
-            'quantity' => 'nullable|integer|min:1',
-        ]);
+        {
+            $request->validate([
+                'product_id' => 'required|exists:products,productid',
+                'quantity' => 'required|integer|min:1',
+                'size' => 'required|string',
+                'session_id' => 'nullable|string',
+            ]);
 
-        $quantity = $request->quantity ?? 1;
+            $quantity = $request->quantity;
+            $productId = $request->product_id;
+            $size = $request->size;
 
-        if (auth()->check()) {
-            $cart = Cart::updateOrCreate(
-                ['user_id' => auth()->id(), 'product_id' => $request->product_id],
-                ['quantity' => \DB::raw('quantity + ' . $quantity)]
-            );
-            return response()->json($cart, 201);
-        } elseif ($request->hasHeader('Session-Id')) {
-            $sessionId = $request->header('Session-Id');
+            if (auth()->check()) {
+                // Authenticated user → store in DB
+                $existing = Cart::where('user_id', auth()->id())
+                    ->where('product_id', $productId)
+                    ->where('size', $size)
+                    ->first();
 
-            $cart = Cart::where('session_id', $sessionId)
-                ->where('product_id', $request->product_id)
-                ->first();
+                if ($existing) {
+                    $existing->quantity += $quantity;
+                    $existing->save();
+                    $cart = $existing;
+                } else {
+                    $cart = Cart::create([
+                        'user_id' => auth()->id(),
+                        'product_id' => $productId,
+                        'size' => $size,
+                        'quantity' => $quantity,
+                    ]);
+                }
 
-            if ($cart) {
-                $cart->quantity += $quantity;
-                $cart->save();
+                return response()->json(['message' => 'Added to user cart', 'data' => $cart]);
             } else {
-                $cart = Cart::create([
-                    'session_id' => $sessionId,
-                    'product_id' => $request->product_id,
-                    'quantity' => $quantity,
-                ]);
-            }
+                // Guest user → store in DB using session_id
+                $sessionId = $request->session_id;
 
-            return response()->json($cart, 201);
+                $existing = Cart::where('session_id', $sessionId)
+                    ->where('product_id', $productId)
+                    ->where('size', $size)
+                    ->first();
+
+                if ($existing) {
+                    $existing->quantity += $quantity;
+                    $existing->save();
+                    $cart = $existing;
+                } else {
+                    $cart = Cart::create([
+                        'session_id' => $sessionId,
+                        'product_id' => $productId,
+                        'size' => $size,
+                        'quantity' => $quantity,
+                    ]);
+                }
+
+                return response()->json(['message' => 'Added to guest cart (DB)', 'data' => $cart]);
+            }
         }
 
-        return response()->json(['error' => 'Missing Session-Id'], 400);
-    }
+
 
     // Update quantity
     public function update(Request $request, $product_id)
