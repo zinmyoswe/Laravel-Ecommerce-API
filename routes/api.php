@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\SubcategoryController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\OrderController;
 
 Route::prefix('products')->group(function () {
     Route::get('/', [ProductController::class, 'index']); // List all products
@@ -46,4 +47,7 @@ Route::prefix('cart')->group(function () {
     Route::delete('/{product_id}', [CartController::class, 'destroy']);
     Route::get('/session/{session_id}', [CartController::class, 'showBySession']);
 });
+
+
+Route::post('/checkout', [OrderController::class, 'store']);
 

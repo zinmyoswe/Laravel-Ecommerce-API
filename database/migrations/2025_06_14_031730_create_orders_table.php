@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();      // for logged-in users
             $table->string('session_id')->nullable();               // for guest users
-            $table->decimal('total_price', 10, 2);
+            $table->decimal('total', 10, 2);
             $table->string('status')->default('pending');           // pending, paid, shipped, etc.
             $table->timestamps();
         });
