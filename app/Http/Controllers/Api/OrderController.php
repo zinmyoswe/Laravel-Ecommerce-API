@@ -57,6 +57,9 @@ class OrderController extends Controller
                 'quantity' => $item->quantity,
                 'price' => $item->product->price,
             ]);
+
+            // Decrease stock in products table
+            $item->product->decrement('stock', $item->quantity);
         }
 
         // Optional: Clear cart
