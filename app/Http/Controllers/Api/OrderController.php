@@ -140,4 +140,18 @@ class OrderController extends Controller
 
         return response()->json($order);
     }
+
+    public function getUserOrders($user_id)
+    {
+        if (auth()->id() != $user_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $orders = Order::with(['items.product', 'shipping'])
+                    ->where('user_id', $user_id)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+        return response()->json($orders);
+    }
 }

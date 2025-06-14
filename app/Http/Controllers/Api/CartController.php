@@ -23,47 +23,7 @@ class CartController extends Controller
     }
 
     // Add to cart
-    // public function store(Request $request)
-    // {
-    //     $request->validate([
-    //         'product_id' => 'required|exists:products,productid',
-    //         'quantity' => 'required|integer|min:1',
-    //         'size' => 'required|string',
-    //         'session_id' => 'nullable|string',
-    //     ]);
-
-    //     $quantity = $request->quantity;
-    //     $productId = $request->product_id;
-    //     $size = $request->size;
-
-    //     if (auth()->check()) {
-    //         // Authenticated user → store in DB
-    //         $cart = Cart::updateOrCreate(
-    //             [
-    //                 'user_id' => auth()->id(),
-    //                 'product_id' => $productId,
-    //                 'size' => $size,
-    //             ],
-    //             ['quantity' => \DB::raw('quantity + ' . $quantity)]
-    //         );
-
-    //         return response()->json(['message' => 'Added to user cart', 'data' => $cart]);
-    //     } else {
-    //         // Guest user → store in DB using session_id
-    //         $sessionId = $request->session_id;
-
-    //         $cart = Cart::updateOrCreate(
-    //             [
-    //                 'session_id' => $sessionId,
-    //                 'product_id' => $productId,
-    //                 'size' => $size,
-    //             ],
-    //             ['quantity' => \DB::raw('quantity + ' . $quantity)]
-    //         );
-
-    //         return response()->json(['message' => 'Added to guest cart (DB)', 'data' => $cart]);
-    //     }
-    // }
+    
 
     public function store(Request $request)
         {
