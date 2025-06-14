@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Cart;
-use App\Models\Shipping;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -16,22 +16,13 @@ class OrderController extends Controller
         $request->validate([
             'session_id' => 'nullable|string',
             'payment_method' => 'required|string',
-
-            // Shipping validation
-            'shipping.name' => 'required|string',
-            'shipping.email' => 'required|email',
-            'shipping.phone' => 'required|string',
-            'shipping.address' => 'required|string',
-            'shipping.city' => 'required|string',
-            'shipping.postal_code' => 'required|string',
-            'shipping.country' => 'required|string',
         ]);
 
         $userId = auth()->id();
         $sessionId = $request->session_id;
 
         // Get cart items
-        $cartItems = Cart::where(function ($query) use ($userId, $sessionId) {
+        $cartItems = \App\Models\Cart::where(function ($query) use ($userId, $sessionId) {
             if ($userId) {
                 $query->where('user_id', $userId);
             } else {
@@ -50,17 +41,16 @@ class OrderController extends Controller
         }
 
         // Create order
-        $order = Order::create([
+        $order = \App\Models\Order::create([
             'user_id' => $userId,
             'session_id' => $sessionId,
             'total' => $total,
-            'payment_method' => $request->payment_method,
             'status' => 'pending',
         ]);
 
         // Create order items
         foreach ($cartItems as $item) {
-            OrderItem::create([
+            \App\Models\OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => $item->product_id,
                 'size' => $item->size,
@@ -68,24 +58,12 @@ class OrderController extends Controller
                 'price' => $item->product->price,
             ]);
 
-            // Decrease stock
+            // Decrease stocks in products table
             $item->product->decrement('stock', $item->quantity);
         }
 
-        // Create shipping info
-        Shipping::create([
-            'order_id' => $order->id,
-            'name' => $request->shipping['name'],
-            'email' => $request->shipping['email'],
-            'phone' => $request->shipping['phone'],
-            'address' => $request->shipping['address'],
-            'city' => $request->shipping['city'],
-            'postal_code' => $request->shipping['postal_code'],
-            'country' => $request->shipping['country'],
-        ]);
-
-        // Clear cart
-        Cart::where(function ($query) use ($userId, $sessionId) {
+        // Optional: Clear cart
+        \App\Models\Cart::where(function ($query) use ($userId, $sessionId) {
             if ($userId) {
                 $query->where('user_id', $userId);
             } else {
@@ -95,4 +73,5 @@ class OrderController extends Controller
 
         return response()->json(['message' => 'Order created successfully', 'order_id' => $order->id], 201);
     }
+
 }
