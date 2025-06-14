@@ -51,3 +51,7 @@ Route::prefix('cart')->group(function () {
 
 Route::post('/checkout', [OrderController::class, 'store']);
 
+// Order routes
+Route::middleware('auth:sanctum')->get('/orders', [OrderController::class, 'index']);
+Route::get('/orders/guest/{session_id}', [OrderController::class, 'guestOrders']);
+Route::get('/orders/{id}', [OrderController::class, 'show']);

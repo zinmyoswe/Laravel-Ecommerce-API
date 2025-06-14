@@ -95,4 +95,49 @@ class OrderController extends Controller
 
         return response()->json(['message' => 'Order created successfully', 'order_id' => $order->id], 201);
     }
+
+
+    // Get order history for authenticated user
+    public function index()
+    {
+        $userId = auth()->id();
+
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $orders = \App\Models\Order::with(['items.product', 'shipping'])
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($orders);
+    }
+
+    // Get order history for guest user by session_id
+    public function guestOrders($sessionId)
+    {
+        $orders = \App\Models\Order::with(['items.product', 'shipping'])
+            ->where('session_id', $sessionId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json(['message' => 'No orders found for this session'], 404);
+        }
+
+        return response()->json($orders);
+    }
+
+
+    public function show($id)
+    {
+        $order = Order::with(['items.product', 'shipping'])->find($id);
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        return response()->json($order);
+    }
 }
