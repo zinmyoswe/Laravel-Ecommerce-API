@@ -14,6 +14,7 @@ class Order extends Model
         'status',
         'payment_method',
         'paid_at',
+        'stripe_charge_id',
     ];
 
     protected $casts = [

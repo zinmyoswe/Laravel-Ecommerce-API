@@ -16,6 +16,7 @@ class OrderController extends Controller
         $request->validate([
             'session_id' => 'nullable|string',
             'payment_method' => 'required|string',
+            'stripe_charge_id' => 'nullable|string',
 
             // Shipping validation
             'shipping.name' => 'required|string',
@@ -25,6 +26,7 @@ class OrderController extends Controller
             'shipping.city' => 'required|string',
             'shipping.postal_code' => 'required|string',
             'shipping.country' => 'required|string',
+            'stripe_charge_id' => 'nullable|string',
         ]);
 
         $userId = auth()->id();
