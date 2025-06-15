@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\SubcategoryController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PaymentController;
 
 Route::prefix('products')->group(function () {
     Route::get('/', [ProductController::class, 'index']); // List all products
@@ -69,3 +70,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart', [CartController::class, 'store']);
     Route::post('/checkout', [OrderController::class, 'store']);
 });
+
+
+Route::post('/payment/charge', [PaymentController::class, 'charge']);
