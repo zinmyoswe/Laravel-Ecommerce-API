@@ -56,6 +56,7 @@ class OrderController extends Controller
             'total' => $total,
             'payment_method' => $request->payment_method,
             'status' => 'pending',
+            'stripe_charge_id' => $request->stripe_charge_id ?? null, // from payment response
         ]);
 
         // Create order items
