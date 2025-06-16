@@ -68,8 +68,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Example protected route
     Route::get('/orders/user/{user_id}', [OrderController::class, 'getUserOrders']);
-    Route::post('/cart', [CartController::class, 'store']);
-    Route::post('/checkout', [OrderController::class, 'store']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    // Route::post('/cart', [CartController::class, 'store']);
+    // Route::post('/checkout', [OrderController::class, 'store']);
 });
 
 

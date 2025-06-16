@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Stripe\Customer;
 use Stripe\Stripe;
 use Stripe\Charge;
 use App\Models\Order;
@@ -13,30 +12,22 @@ class PaymentController extends Controller
     public function charge(Request $request)
     {
         $request->validate([
-            'amount' => 'required|integer|min:1',
+            'amount' => 'required|integer|min:50', // at least 50 cents
             'token' => 'required|string',
-            'order_id' => 'required|integer',
-            'name' => 'nullable|string|max:255',
+            'order_id' => 'required|integer', // 👈 required to update that order
         ]);
 
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        Stripe::setApiKey(env('STRIPE_SECRET')); // set your secret key from .env
 
         try {
-            // ✅ Step 1: Create a Stripe customer with name and token
-            $customer = Customer::create([
-                'name' => $request->name ?? 'Guest',
-                'source' => $request->token,
-            ]);
-
-            // ✅ Step 2: Charge the created customer
             $charge = Charge::create([
-                'amount' => $request->amount * 100, // Stripe expects cents
+                'amount' => $request->amount * 100,
                 'currency' => 'usd',
-                'customer' => $customer->id,
-                'description' => 'E-commerce payment for order ID ' . $request->order_id,
+                'source' => $request->token,
+                'description' => 'E-commerce payment',
             ]);
 
-            // ✅ Step 3: Update order status
+            // ✅ Update order status to 'paid' and save charge_id
             $order = Order::find($request->order_id);
             if ($order) {
                 $order->status = 'paid';
