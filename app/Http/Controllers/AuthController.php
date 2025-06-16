@@ -33,11 +33,45 @@ class AuthController extends Controller
 
    
 
+    // public function login(Request $request)
+    // {
+    //     $request->validate([
+    //         'email' => 'required|email',
+    //         'password' => 'required',
+    //     ]);
+
+    //     $user = User::where('email', $request->email)->first();
+
+    //     if (! $user || ! Hash::check($request->password, $user->password)) {
+    //         throw ValidationException::withMessages([
+    //             'email' => ['The provided credentials are incorrect.'],
+    //         ]);
+    //     }
+
+    //     // 🛒 Migrate guest cart to user cart
+    //     $sessionId = Session::getId();
+
+    //     Cart::where('session_id', $sessionId)
+    //         ->update([
+    //             'user_id' => $user->id,
+    //             'session_id' => null,
+    //         ]);
+
+    //     // 🔐 Generate Sanctum token
+    //     $token = $user->createToken('user-token')->plainTextToken;
+
+    //     return response()->json([
+    //         'user' => $user,
+    //         'token' => $token
+    //     ]);
+    // }
+
     public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
+            'session_id' => 'nullable|string', // 👈 include this
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -48,14 +82,29 @@ class AuthController extends Controller
             ]);
         }
 
-        // 🛒 Migrate guest cart to user cart
-        $sessionId = Session::getId();
+        // 🛒 Merge guest cart with user's cart
+        if ($request->session_id) {
+            $guestCartItems = Cart::where('session_id', $request->session_id)->get();
 
-        Cart::where('session_id', $sessionId)
-            ->update([
-                'user_id' => $user->id,
-                'session_id' => null,
-            ]);
+            foreach ($guestCartItems as $item) {
+                // Check if user already has same product/size in cart
+                $existing = Cart::where('user_id', $user->id)
+                    ->where('product_id', $item->product_id)
+                    ->where('size', $item->size)
+                    ->first();
+
+                if ($existing) {
+                    $existing->quantity += $item->quantity;
+                    $existing->save();
+                    // remove guest row
+                    // $item->delete(); 
+                } else {
+                    $item->user_id = $user->id;
+                    $item->session_id = null;
+                    $item->save();
+                }
+            }
+        }
 
         // 🔐 Generate Sanctum token
         $token = $user->createToken('user-token')->plainTextToken;
