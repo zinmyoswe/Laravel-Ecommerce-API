@@ -64,6 +64,9 @@ Route::post('/checkout', [OrderController::class, 'store']);
 Route::get('/orders/guest/{session_id}', [OrderController::class, 'guestOrders']);
 Route::get('/orders/{id}', [OrderController::class, 'show']);
 
+// ✅ Member Checkout
+Route::middleware('auth:sanctum')->post('/member/checkout', [OrderController::class, 'storeForMember']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/user/{user_id}', [OrderController::class, 'getUserOrders']);

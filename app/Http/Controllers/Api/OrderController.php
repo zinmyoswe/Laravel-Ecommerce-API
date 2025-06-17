@@ -157,4 +157,81 @@ class OrderController extends Controller
 
         return response()->json($orders);
     }
+
+     // ✅ 2. MEMBER CHECKOUT (Authenticated via Sanctum)
+   public function storeForMember(Request $request)
+{
+    $request->validate([
+        'payment_method' => 'required|string',
+        'shipping.name' => 'required|string',
+        'shipping.email' => 'required|email',
+        'shipping.phone' => 'required|string',
+        'shipping.address' => 'required|string',
+        'shipping.city' => 'required|string',
+        'shipping.postal_code' => 'required|string',
+        'shipping.country' => 'required|string',
+    ]);
+
+    $userId = auth()->id(); // ✅ this will always return the user if middleware is correct
+
+    if (!$userId) {
+        return response()->json(['message' => 'Unauthorized. No user found.'], 401);
+    }
+
+    // Get cart items for this user
+    $cartItems = Cart::where('user_id', $userId)->with('product')->get();
+
+    if ($cartItems->isEmpty()) {
+        return response()->json(['message' => 'Cart is empty'], 400);
+    }
+
+    // Calculate total
+    $total = 0;
+    foreach ($cartItems as $item) {
+        $total += $item->product->price * $item->quantity;
+    }
+
+    // Create order
+    $order = Order::create([
+        'user_id' => $userId,
+        'total' => $total,
+        'payment_method' => $request->payment_method,
+        'status' => 'pending',
+    ]);
+
+    // Order items
+    foreach ($cartItems as $item) {
+        OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $item->product_id,
+            'size' => $item->size,
+            'quantity' => $item->quantity,
+            'price' => $item->product->price,
+        ]);
+
+        // Reduce stock
+        $item->product->decrement('stock', $item->quantity);
+    }
+
+    // Shipping info
+    Shipping::create([
+        'order_id' => $order->id,
+        'name' => $request->shipping['name'],
+        'email' => $request->shipping['email'],
+        'phone' => $request->shipping['phone'],
+        'address' => $request->shipping['address'],
+        'city' => $request->shipping['city'],
+        'postal_code' => $request->shipping['postal_code'],
+        'country' => $request->shipping['country'],
+    ]);
+
+    // Clear cart
+    Cart::where('user_id', $userId)->delete();
+
+    return response()->json([
+        'message' => 'Order created successfully',
+        'order_id' => $order->id
+    ], 201);
+}
+
 }
