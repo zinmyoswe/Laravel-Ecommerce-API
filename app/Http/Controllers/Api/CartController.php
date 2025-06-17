@@ -89,43 +89,99 @@ class CartController extends Controller
         }
     }
 
-    // Update quantity
-    public function update(Request $request, $product_id)
-    {
-        $request->validate(['quantity' => 'required|integer|min:1']);
 
-        if (auth()->check()) {
-            $cart = Cart::where('user_id', auth()->id())
-                ->where('product_id', $product_id)
-                ->firstOrFail();
-        } elseif ($request->hasHeader('Session-Id')) {
-            $cart = Cart::where('session_id', $request->header('Session-Id'))
-                ->where('product_id', $product_id)
-                ->firstOrFail();
-        } else {
-            return response()->json(['error' => 'Missing Session-Id'], 400);
-        }
+public function update(Request $request, $product_id)
+{
+    $request->validate([
+        'quantity' => 'required|integer|min:1',
+        'size' => 'required|string',
+    ]);
 
-        $cart->update(['quantity' => $request->quantity]);
-        return response()->json($cart);
+    // ✅ Try to get user ID
+    $userId = auth('sanctum')->id(); // ✔ Use 'sanctum'
+    $sessionId = $request->header('Session-Id');
+
+    // ❗ fallback check
+    if (!$userId && !$sessionId) {
+        return response()->json(['message' => 'Session ID or Auth token required'], 400);
     }
 
-    // Remove item
+    // 🔍 Start query
+    $query = Cart::where('product_id', $product_id)
+                 ->where('size', $request->size);
+
+    if ($userId) {
+        $query->where('user_id', $userId);
+    } else {
+        $query->where('session_id', $sessionId);
+    }
+
+    $cartItem = $query->first();
+
+    if (!$cartItem) {
+        return response()->json(['message' => 'Cart item not found'], 404);
+    }
+
+    $cartItem->quantity = $request->quantity;
+    $cartItem->save();
+
+    return response()->json(['message' => 'Cart updated']);
+}
+
+
+public function updateForGuest(Request $request, $product_id)
+{
+    $sessionId = $request->header('Session-Id');
+    if (!$sessionId) {
+        return response()->json(['message' => 'Session ID required'], 400);
+    }
+
+    $request->validate([
+        'quantity' => 'required|integer|min:1',
+        'size' => 'required|string',
+    ]);
+
+    $cartItem = Cart::where('product_id', $product_id)
+                    ->where('size', $request->size)
+                    ->where('session_id', $sessionId)
+                    ->first();
+
+    if (!$cartItem) {
+        return response()->json(['message' => 'Cart item not found'], 404);
+    }
+
+    $cartItem->quantity = $request->quantity;
+    $cartItem->save();
+
+    return response()->json(['message' => 'Cart updated']);
+}
+
+
+
+
+  
+ // 🔸 Remove Item (Both Guest and Logged-in)
     public function destroy(Request $request, $product_id)
     {
-        if (auth()->check()) {
-            Cart::where('user_id', auth()->id())
-                ->where('product_id', $product_id)
-                ->delete();
+        $user = $request->user();
+
+        if ($user) {
+            $deleted = Cart::where('user_id', $user->id)
+                        ->where('product_id', $product_id)
+                        ->delete();
         } elseif ($request->hasHeader('Session-Id')) {
-            Cart::where('session_id', $request->header('Session-Id'))
-                ->where('product_id', $product_id)
-                ->delete();
+            $deleted = Cart::where('session_id', $request->header('Session-Id'))
+                        ->where('product_id', $product_id)
+                        ->delete();
         } else {
-            return response()->json(['error' => 'Missing Session-Id'], 400);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json(['message' => 'Item removed']);
+        if ($deleted) {
+            return response()->json(['message' => 'Cart item removed']);
+        }
+
+        return response()->json(['error' => 'Cart item not found'], 404);
     }
 
     // Fetch by session explicitly
@@ -166,5 +222,29 @@ class CartController extends Controller
 
         return response()->json($cartItem);
     }
+
+    public function destroyForGuest(Request $request, $product_id)
+{
+    $sessionId = $request->header('Session-Id');
+    $size = $request->input('size');
+
+    if (!$sessionId || !$size) {
+        return response()->json(['message' => 'Session-Id header and size are required'], 400);
+    }
+
+    $cartItem = Cart::where('session_id', $sessionId)
+        ->where('product_id', $product_id)
+        ->where('size', $size)
+        ->first();
+
+    if (!$cartItem) {
+        return response()->json(['message' => 'Cart item not found'], 404);
+    }
+
+    $cartItem->delete();
+
+    return response()->json(['message' => 'Item removed from guest cart']);
+}
+
 
 }

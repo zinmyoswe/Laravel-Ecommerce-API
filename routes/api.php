@@ -43,6 +43,13 @@ Route::prefix('subcategories')->group(function () {
 // ✅ Guest Cart (Session-based)
 Route::get('/cart/session/{session_id}', [CartController::class, 'showBySession']);
 Route::post('/cart/session-store', [CartController::class, 'storeForGuest']);
+// Guest-compatible (user OR guest with Session-Id)
+// Route::put('/cart/{product_id}', [CartController::class, 'update']);
+// Route::delete('/cart/{product_id}', [CartController::class, 'destroy']);
+
+// Guest-compatible
+Route::put('/cart/guest/{product_id}', [CartController::class, 'updateForGuest']);
+Route::delete('/cart/guest/{product_id}', [CartController::class, 'destroyForGuest']);
 
 // ✅ Authenticated Cart (User-based)
 Route::middleware('auth:sanctum')->prefix('cart')->group(function () {
