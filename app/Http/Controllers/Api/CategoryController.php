@@ -53,4 +53,14 @@ class CategoryController extends Controller
         return response()->json(['message' => 'Category deleted successfully.']);
     }
 
+    public function distinct()
+{
+    $categories = \DB::table('categories')
+        ->select('categoryname', \DB::raw('MIN(categoryid) as categoryid'))
+        ->groupBy('categoryname')
+        ->get();
+
+    return response()->json($categories);
+}
+
 }

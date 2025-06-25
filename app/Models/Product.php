@@ -28,6 +28,7 @@ class Product extends Model
 
     protected $casts = [
         'productimages' => 'array',
+        'sizes' => 'array',
     ];
 
     // Relationships

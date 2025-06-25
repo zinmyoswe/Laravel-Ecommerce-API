@@ -29,6 +29,7 @@ Route::prefix('categories')->group(function () {
     Route::post('/', [CategoryController::class, 'store']);
     Route::put('/{id}', [CategoryController::class, 'update']);
     Route::delete('/{id}', [CategoryController::class, 'destroy']);
+    Route::get('/distinct', [CategoryController::class, 'distinct']);
 });
 
 // ✅ Subcategory Routes
@@ -38,6 +39,7 @@ Route::prefix('subcategories')->group(function () {
     Route::post('/', [SubcategoryController::class, 'store']);
     Route::put('/{id}', [SubcategoryController::class, 'update']);
     Route::delete('/{id}', [SubcategoryController::class, 'destroy']);
+
 });
 
 // ✅ Guest Cart (Session-based)
