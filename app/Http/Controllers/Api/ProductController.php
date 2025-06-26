@@ -19,10 +19,6 @@ class ProductController extends Controller
         $query->where('subcategory_id', $request->input('subcategory_id'));
     }
 
-            // Filter by subcategory_id if present
-            // if ($request->has('subcategory_id')) {
-            //     $query->where('subcategory_id', $request->subcategory_id);
-            // }
 
     // ✅ Filter by gender (multi-select)
     if ($request->filled('gender')) {
@@ -89,8 +85,18 @@ class ProductController extends Controller
         }
     }
 
-    return response()->json($query->get());
-}
+    // ✅ Fallback to latest by productid if no sort specified
+    if (!$request->filled('sort')) {
+        $query->orderBy('productid', 'desc');
+    }
+
+    // ✅ Limit for thumbnail slider or other use cases
+    if ($request->filled('limit')) {
+        $query->limit((int) $request->input('limit'));
+    }
+
+        return response()->json($query->get());
+    }
 
 
     // Product detail
@@ -180,138 +186,7 @@ class ProductController extends Controller
 
 
     
-//     public function filter(Request $request)
-// {
-//     $query = Product::query();
 
-//     // Filter by subcategory
-//     if ($request->has('subcategory_id')) {
-//         $query->where('subcategory_id', $request->subcategory_id);
-//     }
-
-//     // Filter by gender
-//     if ($request->has('gender')) {
-//         $query->where('gender', $request->gender);
-//     }
-
-//     // Filter by price range
-//     if ($request->has('min_price')) {
-//         $query->where('price', '>=', $request->min_price);
-//     }
-//     if ($request->has('max_price')) {
-//         $query->where('price', '<=', $request->max_price);
-//     }
-
-    
-
-//     // ✅ Filter by clothing size IDs
-//     if ($request->has('clothing_size_ids')) {
-//         $clothingSizeIds = $request->clothing_size_ids;
-//         $query->whereHas('sizes', function ($q) use ($clothingSizeIds) {
-//             $q->where('sizetype', 'clothing')->whereIn('id', $clothingSizeIds);
-//         });
-//     }
-
-//     // ✅ Filter by shoe size IDs
-//     if ($request->has('shoe_size_ids')) {
-//         $shoeSizeIds = $request->shoe_size_ids;
-//         $query->whereHas('sizes', function ($q) use ($shoeSizeIds) {
-//             $q->where('sizetype', 'shoes')->whereIn('id', $shoeSizeIds);
-//         });
-//     }
-
-   
-
-//     if (!empty($request->color)) {
-//     $query->whereIn('color', $request->color);
-//     }
-
-//     // Sorting
-//     if ($request->has('sort')) {
-//         switch ($request->sort) {
-//             case 'price_asc':
-//                 $query->orderBy('price', 'asc');
-//                 break;
-//             case 'price_desc':
-//                 $query->orderBy('price', 'desc');
-//                 break;
-//             case 'newest':
-//                 $query->orderBy('created_at', 'desc');
-//                 break;
-//         }
-//     }
-
-//     return response()->json($query->get());
-// }
-
-//  public function filter(Request $request)
-// {
-//     $query = Product::with('sizes');
-
-//     // ✅ Filter by subcategory
-//     if ($request->filled('subcategory_id')) {
-//         $query->where('subcategory_id', $request->subcategory_id);
-//     }
-
-//     // ✅ Filter by gender (multi-select)
-//     if ($request->filled('gender')) {
-//         $genders = is_array($request->gender) ? $request->gender : [$request->gender];
-//         $query->whereIn('gender', $genders);
-//     }
-
-//     // ✅ Filter by price range
-//     if ($request->filled('min_price')) {
-//         $query->where('price', '>=', $request->min_price);
-//     }
-//     if ($request->filled('max_price')) {
-//         $query->where('price', '<=', $request->max_price);
-//     }
-
-//     // ✅ Filter by clothing size IDs (multi-select)
-//     if ($request->filled('clothing_size_ids')) {
-//         $clothingSizeIds = is_array($request->clothing_size_ids)
-//             ? $request->clothing_size_ids
-//             : [$request->clothing_size_ids];
-
-//         $query->whereHas('sizes', function ($q) use ($clothingSizeIds) {
-//             $q->where('sizetype', 'clothing')->whereIn('sizes.id', $clothingSizeIds);
-//         });
-//     }
-
-//     // ✅ Filter by shoe size IDs (multi-select)
-//     if ($request->filled('shoe_size_ids')) {
-//         $shoeSizeIds = is_array($request->shoe_size_ids)
-//             ? $request->shoe_size_ids
-//             : [$request->shoe_size_ids];
-
-//         $query->whereHas('sizes', function ($q) use ($shoeSizeIds) {
-//             $q->where('sizetype', 'shoes')->whereIn('sizes.id', $shoeSizeIds);
-//         });
-//     }
-
-//     // ✅ Filter by color (multi-select)
-//     if ($request->filled('color')) {
-//         $colors = is_array($request->color) ? $request->color : [$request->color];
-//         $query->whereIn('color', $colors);
-//     }
-
-//     // ✅ Sorting
-//     if ($request->filled('sort')) {
-//         switch ($request->sort) {
-//             case 'price_asc':
-//                 $query->orderBy('price', 'asc');
-//                 break;
-//             case 'price_desc':
-//                 $query->orderBy('price', 'desc');
-//                 break;
-//             case 'newest':
-//                 $query->orderBy('created_at', 'desc');
-//                 break;
-//         }
-//     }
-
-//     return response()->json($query->get());
-// }
 
 
 }

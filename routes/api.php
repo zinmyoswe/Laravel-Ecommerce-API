@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\PosterslideController;
 
 // ✅ Product Routes
 Route::prefix('products')->group(function () {
@@ -86,3 +87,6 @@ Route::post('/login', [AuthController::class, 'login']);
 // ✅ Payment
 Route::post('/payment/charge', [PaymentController::class, 'charge']);
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
+
+
+Route::apiResource('posterslides', PosterslideController::class);
