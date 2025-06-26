@@ -9,48 +9,14 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
     // List all products
-    // public function index(Request $request)
-    // {
-    //      $query = Product::with(['category', 'subcategory', 'similarProducts', 'sizes']);
-
-    //         // Filter by subcategory_id if present
-    //         if ($request->has('subcategory_id')) {
-    //             $query->where('subcategory_id', $request->subcategory_id);
-    //         }
-
-    //         // Filter by gender if present
-    //         if ($request->has('gender')) {
-    //             $query->where('gender', $request->gender);
-    //         }
-
-    //         // Filter by sizevalue if present
-    //         // if ($request->has('sizevalue')) {
-    //         //     $query->whereHas('sizes', function ($q) use ($request) {
-    //         //         $q->where('sizevalue', $request->sizevalue);
-
-    //                 // Optional: filter by sizetype too, if provided
-    //         //         if ($request->has('sizetype')) {
-    //         //             $q->where('sizetype', $request->sizetype);
-    //         //         }
-    //         //     });
-    //         // }
-
-    //         // Filter by sizevalue if present
-           
-
-    //         $products = $query->get();
-
-    //     // $products = Product::with(['category', 'subcategory', 'similarProducts', 'sizes'])->get();
-    //     return response()->json($products);
-    // }
-
+    
     public function index(Request $request)
 {
     $query = Product::with(['category', 'subcategory', 'similarProducts', 'sizes']);
 
     // ✅ Filter by subcategory
     if ($request->filled('subcategory_id')) {
-        $query->where('subcategory_id', $request->subcategory_id);
+        $query->where('subcategory_id', $request->input('subcategory_id'));
     }
 
             // Filter by subcategory_id if present
@@ -64,11 +30,18 @@ class ProductController extends Controller
         $query->whereIn('gender', $genders);
     }
 
-    // ✅ Filter by color (multi-select)
-    if ($request->filled('color')) {
-        $colors = is_array($request->color) ? $request->color : [$request->color];
-        $query->whereIn('color', $colors);
+    
+
+    if ($request->has('color')) {
+    $colors = $request->input('color');
+
+    if (!is_array($colors)) {
+        $colors = [$colors];
     }
+
+    $query->whereIn('color', $colors); // ✅ supports multiple color filters
+}
+
 
     // ✅ Filter by clothing or shoe sizes
     if ($request->filled('sizevalue')) {
