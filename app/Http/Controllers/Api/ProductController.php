@@ -98,6 +98,44 @@ class ProductController extends Controller
         return response()->json($query->get());
     }
 
+    public function create(Request $request)
+{
+    $validated = $request->validate([
+        'productname' => 'required|string',
+        'productimage' => 'required|url',
+        'productimages' => 'nullable|array',
+        'productimages.*' => 'url',
+        'productvideo' => 'nullable|url',
+        'category_id' => 'required|exists:categories,categoryid',
+        'subcategory_id' => 'required|exists:subcategories,subcategoryid',
+        'color' => 'required|string',
+        'price' => 'required|numeric',
+        'discount' => 'nullable|numeric',
+        'stock' => 'required|integer',
+        'description' => 'nullable|string',
+        'gender' => 'required|string|in:Men,Women,Kids',
+        'adminid' => 'nullable|integer',
+        'sameproductid' => 'nullable|exists:products,productid',
+        'size_ids' => 'nullable|array',
+        'size_ids.*' => 'exists:sizes,id',
+    ]);
+
+    $product = Product::create($validated);
+
+    // Attach sizes if provided
+    if ($request->has('size_ids')) {
+        $product->sizes()->attach($validated['size_ids']);
+    }
+
+    return response()->json([
+        'message' => 'Product created successfully',
+        'product' => $product->load(['sizes', 'category', 'subcategory'])
+    ], 201);
+}
+
+
+
+
 
     // Product detail
     public function show($id)

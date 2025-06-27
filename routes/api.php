@@ -19,6 +19,7 @@ Route::prefix('products')->group(function () {
     Route::get('/{id}', [ProductController::class, 'show']);
     Route::get('/category/{categoryId}', [ProductController::class, 'byCategory']);
     Route::get('/subcategory/{subcategoryId}', [ProductController::class, 'bySubcategory']);
+    Route::post('/', [ProductController::class, 'create']); // ✅ NEW
     Route::put('/{id}', [ProductController::class, 'update']);
     Route::put('/{id}/similar', [ProductController::class, 'updateSimilarProducts']);
 });
