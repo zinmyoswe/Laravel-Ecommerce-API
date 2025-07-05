@@ -37,18 +37,11 @@ class PaymentController extends Controller
             ]);
 
             // ✅ Step 3: Update order status
-
-             $order = Order::with('items.product')->find($request->order_id);
-
+            $order = Order::find($request->order_id);
             if ($order) {
-                $order->update([
-                    'status' => 'paid',
-                    'stripe_charge_id' => $charge->id,
-                ]);
-
-                foreach ($order->items as $item) {
-                    $item->product->decrement('stock', $item->quantity);
-                }
+                $order->status = 'paid';
+                $order->stripe_charge_id = $charge->id;
+                $order->save();
             }
 
             return response()->json([

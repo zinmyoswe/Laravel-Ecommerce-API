@@ -12,6 +12,8 @@ class Order extends Model
         'session_id',
         'total', // If you're using this field name in your table
         'status',
+        'shipping_fee',       // ✅ Add this if missing
+        'delivery_option',    // ✅ Add this if missing
         'payment_method',
         'paid_at',
         'stripe_charge_id',
