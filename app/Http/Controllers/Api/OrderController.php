@@ -16,7 +16,6 @@ class OrderController extends Controller
         $request->validate([
             'session_id' => 'nullable|string',
             'payment_method' => 'required|string',
-            'stripe_charge_id' => 'nullable|string',
 
             // Shipping validation
             'shipping.name' => 'required|string',
@@ -27,6 +26,8 @@ class OrderController extends Controller
             'shipping.postal_code' => 'required|string',
             'shipping.country' => 'required|string',
             'stripe_charge_id' => 'nullable|string',
+            'shipping.shipping_fee' => 'required|numeric|min:0',
+            'shipping.delivery_option' => 'required|string',
         ]);
 
         $userId = auth()->id();
@@ -51,8 +52,10 @@ class OrderController extends Controller
             $total += $item->product->price * $item->quantity;
         }
 
-        // ✅ Add shipping logic here
-        $shippingFee = $total >= 100 ? 0 : 20;
+        // ✅ Correct way to extract shipping data
+        $shippingData = $request->input('shipping');
+        $shippingFee = $shippingData['shipping_fee'];
+        $deliveryOption = $shippingData['delivery_option'];
         $grandTotal = $total + $shippingFee;
 
 
@@ -61,9 +64,9 @@ class OrderController extends Controller
         $order = Order::create([
             'user_id' => $userId,
             'session_id' => $sessionId,
-            'total' => $grandTotal,
+            'total' => $total,
             'shipping_fee' => $shippingFee,
-            'delivery_option' => $request->shipping['delivery_option'] ?? 'standard',
+            'delivery_option' => $deliveryOption,
             'payment_method' => $request->payment_method,
             'status' => 'pending',
             'stripe_charge_id' => $request->stripe_charge_id ?? null, // from payment response
@@ -80,19 +83,29 @@ class OrderController extends Controller
             ]);
 
             // Decrease stock
-            $item->product->decrement('stock', $item->quantity);
+            // $item->product->decrement('stock', $item->quantity);
         }
 
         // Create shipping info
+        // Shipping::create([
+        //     'order_id' => $order->id,
+        //     'name' => $request->shipping['name'],
+        //     'email' => $request->shipping['email'],
+        //     'phone' => $request->shipping['phone'],
+        //     'address' => $request->shipping['address'],
+        //     'city' => $request->shipping['city'],
+        //     'postal_code' => $request->shipping['postal_code'],
+        //     'country' => $request->shipping['country'],
+        // ]);
         Shipping::create([
             'order_id' => $order->id,
-            'name' => $request->shipping['name'],
-            'email' => $request->shipping['email'],
-            'phone' => $request->shipping['phone'],
-            'address' => $request->shipping['address'],
-            'city' => $request->shipping['city'],
-            'postal_code' => $request->shipping['postal_code'],
-            'country' => $request->shipping['country'],
+            'name' => $shippingData['name'],
+            'email' => $shippingData['email'],
+            'phone' => $shippingData['phone'],
+            'address' => $shippingData['address'],
+            'city' => $shippingData['city'],
+            'postal_code' => $shippingData['postal_code'],
+            'country' => $shippingData['country'],
         ]);
 
         // Clear cart
@@ -104,7 +117,13 @@ class OrderController extends Controller
             }
         })->delete();
 
-        return response()->json(['message' => 'Order created successfully', 'order_id' => $order->id, 'shipping_fee' => $order->shipping_fee], 201);
+        return response()->json([
+            'message' => 'Order created successfully',
+            'order_id' => $order->id,
+            'shipping_fee' => $order->shipping_fee,
+            'total' => $order->total,
+            'grand_total' => $grandTotal
+        ], 201);
     }
 
 
@@ -167,87 +186,7 @@ class OrderController extends Controller
     }
 
      // ✅ 2. MEMBER CHECKOUT (Authenticated via Sanctum)
-//    public function storeForMember(Request $request)
-// {
-//     $request->validate([
-//         'payment_method' => 'required|string',
-//         'shipping.name' => 'required|string',
-//         'shipping.email' => 'required|email',
-//         'shipping.phone' => 'required|string',
-//         'shipping.address' => 'required|string',
-//         'shipping.city' => 'required|string',
-//         'shipping.postal_code' => 'required|string',
-//         'shipping.country' => 'required|string',
-//     ]);
 
-//     $userId = auth()->id(); // ✅ this will always return the user if middleware is correct
-
-//     if (!$userId) {
-//         return response()->json(['message' => 'Unauthorized. No user found.'], 401);
-//     }
-
-//     // Get cart items for this user
-//     $cartItems = Cart::where('user_id', $userId)->with('product')->get();
-
-//     if ($cartItems->isEmpty()) {
-//         return response()->json(['message' => 'Cart is empty'], 400);
-//     }
-
-//     // Calculate total
-//     $total = 0;
-//     foreach ($cartItems as $item) {
-//         $total += $item->product->price * $item->quantity;
-//     }
-
-//     // ✅ Add shipping logic here
-//     $shippingFee = $total >= 100 ? 0 : 20;
-//     $grandTotal = $total + $shippingFee;
-
-//     // Create order
-//     $order = Order::create([
-//         'user_id' => $userId,
-//         'total' => $total,
-//         'shipping_fee' => $shippingFee,
-//         'delivery_option' => $request->shipping['delivery_option'] ?? 'standard',
-//         'payment_method' => $request->payment_method,
-//         'status' => 'pending',
-//     ]);
-
-//     // Order items
-//     foreach ($cartItems as $item) {
-//         OrderItem::create([
-//             'order_id' => $order->id,
-//             'product_id' => $item->product_id,
-//             'size' => $item->size,
-//             'quantity' => $item->quantity,
-//             'price' => $item->product->price,
-//         ]);
-
-//         // Reduce stock
-//         // $item->product->decrement('stock', $item->quantity);
-//     }
-
-//     // Shipping info
-//     Shipping::create([
-//         'order_id' => $order->id,
-//         'name' => $request->shipping['name'],
-//         'email' => $request->shipping['email'],
-//         'phone' => $request->shipping['phone'],
-//         'address' => $request->shipping['address'],
-//         'city' => $request->shipping['city'],
-//         'postal_code' => $request->shipping['postal_code'],
-//         'country' => $request->shipping['country'],
-//     ]);
-
-//     // Clear cart
-//     Cart::where('user_id', $userId)->delete();
-
-//     return response()->json([
-//         'message' => 'Order created successfully',
-//         'order_id' => $order->id,
-//         'shipping_fee' => $order->shipping_fee
-//     ], 201);
-// }
 
 public function storeForMember(Request $request)
 {
