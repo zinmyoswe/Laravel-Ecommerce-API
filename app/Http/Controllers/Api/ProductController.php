@@ -113,7 +113,7 @@ class ProductController extends Controller
         'discount' => 'nullable|numeric',
         'stock' => 'required|integer',
         'description' => 'nullable|string',
-        'gender' => 'required|string|in:Men,Women,Kids',
+        'gender' => 'required|string|in:Men,Women,Kids,Unisex',
         'adminid' => 'nullable|integer',
         'sameproductid' => 'nullable|exists:products,productid',
         'size_ids' => 'nullable|array',
