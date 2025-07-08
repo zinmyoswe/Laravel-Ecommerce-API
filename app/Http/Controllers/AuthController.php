@@ -12,12 +12,32 @@ use App\Models\Cart;
 
 class AuthController extends Controller
 {
+    // public function register(Request $request)
+    // {
+    //     $request->validate([
+    //         'name' => 'required',
+    //         'email' => 'required|email|unique:users',
+    //         'password' => 'required|confirmed|min:6',
+    //     ]);
+
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'password' => bcrypt($request->password),
+    //     ]);
+
+    //     $token = $user->createToken('user-token')->plainTextToken;
+
+    //     return response()->json(['user' => $user, 'token' => $token]);
+    // }
+
     public function register(Request $request)
     {
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed|min:6',
+            'session_id' => 'nullable|string', // <-- include session_id here
         ]);
 
         $user = User::create([
@@ -26,10 +46,37 @@ class AuthController extends Controller
             'password' => bcrypt($request->password),
         ]);
 
+        // 🛒 Merge guest cart into user's cart
+        if ($request->session_id) {
+            $guestCartItems = Cart::where('session_id', $request->session_id)->get();
+
+            foreach ($guestCartItems as $item) {
+                $existing = Cart::where('user_id', $user->id)
+                    ->where('product_id', $item->product_id)
+                    ->where('size', $item->size)
+                    ->first();
+
+                if ($existing) {
+                    $existing->quantity += $item->quantity;
+                    $existing->save();
+                    // Optionally delete guest cart item: $item->delete();
+                } else {
+                    $item->user_id = $user->id;
+                    $item->session_id = null;
+                    $item->save();
+                }
+            }
+        }
+
+        // 🔐 Generate Sanctum token
         $token = $user->createToken('user-token')->plainTextToken;
 
-        return response()->json(['user' => $user, 'token' => $token]);
+        return response()->json([
+            'user' => $user,
+            'token' => $token
+        ]);
     }
+
 
    
 
