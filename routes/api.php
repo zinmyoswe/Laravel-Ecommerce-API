@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\SubcategoryController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\FavouriteController;
+use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StripeWebhookController;
@@ -25,7 +26,6 @@ Route::prefix('products')->group(function () {
     Route::post('/', [ProductController::class, 'create']); // ✅ NEW
     Route::put('/{id}', [ProductController::class, 'update']);
     Route::put('/{id}/similar', [ProductController::class, 'updateSimilarProducts']);
-    Route::get('/search-products', [ProductController::class, 'search']);
 });
 
 // ✅ Category Routes
@@ -104,4 +104,5 @@ Route::middleware('auth:sanctum')->prefix('favourites')->group(function () {
 });
 
 
+Route::get('/search/products', [SearchController::class, 'search']);
 

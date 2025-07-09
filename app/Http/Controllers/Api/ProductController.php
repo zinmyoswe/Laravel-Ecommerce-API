@@ -18,6 +18,23 @@ public function index(Request $request)
 {
     $query = Product::with(['category', 'subcategory', 'similarProducts', 'sizes']);
 
+    // Search filter
+    // if ($request->filled('search')) {
+    //     $keyword = $request->input('search');
+    //     $query->where('productname', 'LIKE', "%{$keyword}%");
+    // }
+
+    if ($request->filled('search')) {
+    $keyword = $request->search;
+    $query->where(function ($q) use ($keyword) {
+        $q->where('productname', 'like', "%{$keyword}%")
+          ->orWhereHas('subcategory', function ($q) use ($keyword) {
+              $q->where('subcategoryname', 'like', "%{$keyword}%");
+          });
+    });
+}
+
+
     // Subcategory filter: support both single and multiple IDs
     if ($request->filled('subcategory_id')) {
         $subcategoryIds = $request->input('subcategory_id');
@@ -223,30 +240,7 @@ public function index(Request $request)
 
     
 
-    public function search(Request $request)
-{
-    $query = $request->input('q'); // the search keyword
-
-    if (!$query) {
-        return response()->json([
-            'message' => 'No search query provided.',
-            'products' => [],
-        ]);
-    }
-
-    $products = Product::where('productname', 'like', '%' . $query . '%')
-        ->orWhere('description', 'like', '%' . $query . '%')
-        ->orWhere('color', 'like', '%' . $query . '%')
-        ->with(['sizes']) // include sizes if needed
-        ->latest()
-        ->limit(20)
-        ->get();
-
-    return response()->json([
-        'products' => $products
-    ]);
-}
-
+    
     
 
 
