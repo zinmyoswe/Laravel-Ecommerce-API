@@ -5,72 +5,68 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;  // Import Log facade
+
 
 class ProductController extends Controller
 {
     // List all products
     
-    public function index(Request $request)
+
+
+public function index(Request $request)
 {
     $query = Product::with(['category', 'subcategory', 'similarProducts', 'sizes']);
 
-    // ✅ Filter by subcategory
+    // Subcategory filter: support both single and multiple IDs
     if ($request->filled('subcategory_id')) {
-        $query->where('subcategory_id', $request->input('subcategory_id'));
+        $subcategoryIds = $request->input('subcategory_id');
+        if (is_array($subcategoryIds)) {
+            $query->whereIn('subcategory_id', $subcategoryIds);
+        } else {
+            $query->where('subcategory_id', $subcategoryIds);
+        }
     }
 
-
-    // ✅ Filter by gender (multi-select)
+    // Gender filter (single value)
     if ($request->filled('gender')) {
-        $genders = is_array($request->gender) ? $request->gender : [$request->gender];
-        $query->whereIn('gender', $genders);
+        $query->where('gender', $request->input('gender'));
     }
 
-    
-
-    if ($request->has('color')) {
-    $colors = $request->input('color');
-
-    if (!is_array($colors)) {
-        $colors = [$colors];
+    // Color filter (single value)
+    if ($request->filled('color')) {
+        $query->where('color', $request->input('color'));
     }
 
-    $query->whereIn('color', $colors); // ✅ supports multiple color filters
-}
-
-
-    // ✅ Filter by clothing or shoe sizes
+    // Size filter (single value)
     if ($request->filled('sizevalue')) {
-        $sizeValues = is_array($request->sizevalue) ? $request->sizevalue : [$request->sizevalue];
-        $query->whereHas('sizes', function ($q) use ($sizeValues) {
-            $q->whereIn('sizevalue', $sizeValues);
+        $query->whereHas('sizes', function ($q) use ($request) {
+            $q->where('sizevalue', $request->input('sizevalue'));
         });
     }
 
-    // ✅ Filter by price range shortcut values (e.g. "under_50")
+    // Price filter (single value)
     if ($request->filled('price')) {
-        $priceRanges = is_array($request->price) ? $request->price : [$request->price];
-        $query->where(function ($q) use ($priceRanges) {
-            foreach ($priceRanges as $range) {
-                switch ($range) {
-                    case 'under_50':
-                        $q->orWhere('price', '<', 50);
-                        break;
-                    case '50_100':
-                        $q->orWhereBetween('price', [50, 100]);
-                        break;
-                    case '101_199':
-                        $q->orWhereBetween('price', [101, 199]);
-                        break;
-                    case 'over_200':
-                        $q->orWhere('price', '>', 200);
-                        break;
-                }
+        $price = $request->input('price');
+        $query->where(function ($q) use ($price) {
+            switch ($price) {
+                case 'under_50':
+                    $q->where('price', '<', 50);
+                    break;
+                case '50_100':
+                    $q->whereBetween('price', [50, 100]);
+                    break;
+                case '101_199':
+                    $q->whereBetween('price', [101, 199]);
+                    break;
+                case 'over_200':
+                    $q->where('price', '>', 200);
+                    break;
             }
         });
     }
 
-    // ✅ Sorting
+    // Sorting
     if ($request->filled('sort')) {
         switch ($request->sort) {
             case 'price_asc':
@@ -83,20 +79,23 @@ class ProductController extends Controller
                 $query->orderBy('created_at', 'desc');
                 break;
         }
+    } else {
+        $query->orderBy('productid', 'desc');
     }
 
-    // ✅ Fallback to latest by productid if no sort specified
+    //     // ✅ Fallback to latest by productid if no sort specified
     if (!$request->filled('sort')) {
         $query->orderBy('productid', 'desc');
     }
 
-    // ✅ Limit for thumbnail slider or other use cases
     if ($request->filled('limit')) {
         $query->limit((int) $request->input('limit'));
     }
 
-        return response()->json($query->get());
-    }
+    return response()->json($query->get());
+}
+
+    
 
     public function create(Request $request)
 {
@@ -222,6 +221,31 @@ class ProductController extends Controller
         ]);
     }
 
+    
+
+    public function search(Request $request)
+{
+    $query = $request->input('q'); // the search keyword
+
+    if (!$query) {
+        return response()->json([
+            'message' => 'No search query provided.',
+            'products' => [],
+        ]);
+    }
+
+    $products = Product::where('productname', 'like', '%' . $query . '%')
+        ->orWhere('description', 'like', '%' . $query . '%')
+        ->orWhere('color', 'like', '%' . $query . '%')
+        ->with(['sizes']) // include sizes if needed
+        ->latest()
+        ->limit(20)
+        ->get();
+
+    return response()->json([
+        'products' => $products
+    ]);
+}
 
     
 

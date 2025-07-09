@@ -25,6 +25,7 @@ Route::prefix('products')->group(function () {
     Route::post('/', [ProductController::class, 'create']); // ✅ NEW
     Route::put('/{id}', [ProductController::class, 'update']);
     Route::put('/{id}/similar', [ProductController::class, 'updateSimilarProducts']);
+    Route::get('/search-products', [ProductController::class, 'search']);
 });
 
 // ✅ Category Routes
@@ -101,3 +102,6 @@ Route::middleware('auth:sanctum')->prefix('favourites')->group(function () {
     Route::post('/', [FavouriteController::class, 'store']);
     Route::delete('/{id}', [FavouriteController::class, 'destroy']);
 });
+
+
+
