@@ -77,6 +77,7 @@ Route::middleware('auth:sanctum')->post('/member/checkout', [OrderController::cl
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}/details', [OrderController::class, 'show']);
     Route::get('/orders/user/{user_id}', [OrderController::class, 'getUserOrders']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
