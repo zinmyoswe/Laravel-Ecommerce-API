@@ -42,10 +42,15 @@ class Product extends Model
         return $this->belongsTo(Subcategory::class, 'subcategory_id', 'subcategoryid');
     }
 
+    // public function similarProducts()
+    // {
+    //     return $this->belongsToMany(Product::class, 'product_similars', 'product_id', 'similar_product_id');
+    // }
+
     public function similarProducts()
-    {
-        return $this->belongsToMany(Product::class, 'product_similars', 'product_id', 'similar_product_id');
-    }
+{
+    return $this->belongsToMany(Product::class, 'product_similars', 'product_id', 'similar_product_id');
+}
 
     public function sizes()
     {

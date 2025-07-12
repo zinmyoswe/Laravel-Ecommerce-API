@@ -19,10 +19,6 @@ public function index(Request $request)
     $query = Product::with(['category', 'subcategory', 'similarProducts', 'sizes']);
 
     // Search filter
-    // if ($request->filled('search')) {
-    //     $keyword = $request->input('search');
-    //     $query->where('productname', 'LIKE', "%{$keyword}%");
-    // }
 
     if ($request->filled('search')) {
     $keyword = $request->search;
@@ -109,7 +105,21 @@ public function index(Request $request)
         $query->limit((int) $request->input('limit'));
     }
 
-    return response()->json($query->get());
+    // return response()->json($query->get());
+
+    // Ensure similarProducts eager loaded and trimmed
+    $query->with(['similarProducts' => function ($q) {
+        $q->select('productid', 'productimage');
+    }]);
+
+    // Get products and map to add similar_image
+    $products = $query->get()->map(function ($product) {
+        $product->similar_image = optional($product->similarProducts->first())->productimage;
+        return $product;
+    });
+
+    // ✅ Return mapped products (with similar_image)
+    return response()->json($products);
 }
 
     
