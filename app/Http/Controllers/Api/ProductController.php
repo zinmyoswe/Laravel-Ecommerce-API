@@ -194,6 +194,7 @@ if ($request->filled('price')) {
 
     public function create(Request $request)
 {
+
     $validated = $request->validate([
         'productname' => 'required|string',
         'productimage' => 'required|url',
@@ -202,7 +203,8 @@ if ($request->filled('price')) {
         'productvideo' => 'nullable|url',
         'category_id' => 'required|exists:categories,categoryid',
         'subcategory_id' => 'required|exists:subcategories,subcategoryid',
-        'shopbysport_id' => 'nullable|exists:shopbysports,id', // ✅ Add this line
+        // 'shopbysport_id' => 'nullable|exists:shopbysports,id', 
+        'shopbysport_id' => 'nullable|integer', 
         'color' => 'required|string',
         'price' => 'required|numeric',
         'discount' => 'nullable|numeric',
@@ -215,6 +217,7 @@ if ($request->filled('price')) {
         'size_ids.*' => 'exists:sizes,id',
     ]);
 
+    \Log::info('Validated:', $validated);
     $product = Product::create($validated);
 
     // Attach sizes if provided

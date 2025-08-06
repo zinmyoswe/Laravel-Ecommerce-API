@@ -15,6 +15,7 @@ class Product extends Model
         'productvideo',
         'category_id',
         'subcategory_id',
+        'shopbysport_id',
         'size',
         'color',
         'price',
@@ -24,7 +25,6 @@ class Product extends Model
         'gender',
         'adminid',
         'sameproductid',
-        'shopbysport_id',
     ];
 
     protected $casts = [
@@ -43,10 +43,6 @@ class Product extends Model
         return $this->belongsTo(Subcategory::class, 'subcategory_id', 'subcategoryid');
     }
 
-    // public function similarProducts()
-    // {
-    //     return $this->belongsToMany(Product::class, 'product_similars', 'product_id', 'similar_product_id');
-    // }
 
     public function similarProducts()
 {
