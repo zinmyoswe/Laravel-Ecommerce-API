@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             SizeSeeder::class,
             ProductSizeSeeder::class,
+            ShopBySportSeeder::class,
         ]);
     }
 }

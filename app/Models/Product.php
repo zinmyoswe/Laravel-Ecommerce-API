@@ -24,6 +24,7 @@ class Product extends Model
         'gender',
         'adminid',
         'sameproductid',
+        'shopbysport_id',
     ];
 
     protected $casts = [
@@ -55,5 +56,10 @@ class Product extends Model
     public function sizes()
     {
         return $this->belongsToMany(Size::class, 'product_size', 'product_id', 'size_id');
+    }
+
+    public function shopBySport()
+    {
+        return $this->belongsTo(ShopBySport::class, 'shopbysport_id');
     }
 }

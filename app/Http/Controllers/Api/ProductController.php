@@ -16,7 +16,7 @@ class ProductController extends Controller
 
 public function index(Request $request)
 {
-    $query = Product::with(['category', 'subcategory', 'similarProducts', 'sizes']);
+    $query = Product::with(['category', 'subcategory', 'shopBySport', 'similarProducts', 'sizes']);
 
     // Search filter
 
@@ -42,42 +42,110 @@ public function index(Request $request)
     }
 
     // Gender filter (single value)
+    // if ($request->filled('gender')) {
+    //     $query->where('gender', $request->input('gender'));
+    // }
+
     if ($request->filled('gender')) {
-        $query->where('gender', $request->input('gender'));
+    $gender = $request->input('gender');
+    if (is_array($gender)) {
+        $query->whereIn('gender', $gender);
+    } else {
+        $query->where('gender', $gender);
     }
+}
 
     // Color filter (single value)
-    if ($request->filled('color')) {
-        $query->where('color', $request->input('color'));
+    // if ($request->filled('color')) {
+    //     $query->where('color', $request->input('color'));
+    // }
+
+if ($request->filled('color')) {
+    $color = $request->input('color');
+    if (is_array($color)) {
+        $query->whereIn('color', $color);
+    } else {
+        $query->where('color', $color);
     }
+}
 
     // Size filter (single value)
-    if ($request->filled('sizevalue')) {
-        $query->whereHas('sizes', function ($q) use ($request) {
-            $q->where('sizevalue', $request->input('sizevalue'));
-        });
-    }
+    // if ($request->filled('sizevalue')) {
+    //     $query->whereHas('sizes', function ($q) use ($request) {
+    //         $q->where('sizevalue', $request->input('sizevalue'));
+    //     });
+    // }
+
+if ($request->filled('sizevalue')) {
+    $sizes = $request->input('sizevalue');
+    $query->whereHas('sizes', function ($q) use ($sizes) {
+        if (is_array($sizes)) {
+            $q->whereIn('sizevalue', $sizes);
+        } else {
+            $q->where('sizevalue', $sizes);
+        }
+    });
+}
+
+//    if ($request->has('shopbysport_id')) {
+//     $query->where('shopbysport_id', $request->shopbysport_id);
+// }
+
+    if ($request->has('shopbysportId')) {
+    $shopbysportId = $request->input('shopbysportId');
+    $query->where('shopbysport_id', $shopbysportId);
+}
 
     // Price filter (single value)
-    if ($request->filled('price')) {
-        $price = $request->input('price');
-        $query->where(function ($q) use ($price) {
-            switch ($price) {
-                case 'under_50':
-                    $q->where('price', '<', 50);
-                    break;
-                case '50_100':
-                    $q->whereBetween('price', [50, 100]);
-                    break;
-                case '101_199':
-                    $q->whereBetween('price', [101, 199]);
-                    break;
-                case 'over_200':
-                    $q->where('price', '>', 200);
-                    break;
-            }
-        });
+    // if ($request->filled('price')) {
+    //     $price = $request->input('price');
+    //     $query->where(function ($q) use ($price) {
+    //         switch ($price) {
+    //             case 'under_50':
+    //                 $q->where('price', '<', 50);
+    //                 break;
+    //             case '50_100':
+    //                 $q->whereBetween('price', [50, 100]);
+    //                 break;
+    //             case '101_199':
+    //                 $q->whereBetween('price', [101, 199]);
+    //                 break;
+    //             case 'over_200':
+    //                 $q->where('price', '>', 200);
+    //                 break;
+    //         }
+    //     });
+    // }
+
+if ($request->filled('price')) {
+    $prices = $request->input('price');
+
+    if (!is_array($prices)) {
+        $prices = [$prices];
     }
+
+    $query->where(function ($q) use ($prices) {
+        foreach ($prices as $price) {
+            $q->orWhere(function ($subQ) use ($price) {
+                switch ($price) {
+                    case 'under_50':
+                        $subQ->where('price', '<', 50);
+                        break;
+                    case '50_100':
+                        $subQ->whereBetween('price', [50, 100]);
+                        break;
+                    case '101_199':
+                        $subQ->whereBetween('price', [101, 199]);
+                        break;
+                    case 'over_200':
+                        $subQ->where('price', '>', 200);
+                        break;
+                }
+            });
+        }
+    });
+}
+
 
     // Sorting
     if ($request->filled('sort')) {
@@ -134,6 +202,7 @@ public function index(Request $request)
         'productvideo' => 'nullable|url',
         'category_id' => 'required|exists:categories,categoryid',
         'subcategory_id' => 'required|exists:subcategories,subcategoryid',
+        'shopbysport_id' => 'nullable|exists:shopbysports,id', // ✅ Add this line
         'color' => 'required|string',
         'price' => 'required|numeric',
         'discount' => 'nullable|numeric',
@@ -155,7 +224,7 @@ public function index(Request $request)
 
     return response()->json([
         'message' => 'Product created successfully',
-        'product' => $product->load(['sizes', 'category', 'subcategory'])
+        'product' => $product->load(['sizes', 'category', 'subcategory', 'shopBySport'])
     ], 201);
 }
 

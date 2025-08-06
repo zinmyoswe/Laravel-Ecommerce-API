@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Subcategory;
+use App\Models\ShopBySport;
 
 class SearchController extends Controller
 {
@@ -44,7 +45,7 @@ class SearchController extends Controller
         ]);
     }
 
-    $products = Product::with(['sizes', 'category', 'subcategory'])
+     $products = Product::with(['sizes', 'category', 'subcategory', 'shopbysport'])
         ->where(function ($q) use ($query) {
             $q->where('productname', 'like', '%' . $query . '%')
               ->orWhere('color', 'like', '%' . $query . '%')
@@ -54,6 +55,9 @@ class SearchController extends Controller
               })
               ->orWhereHas('subcategory', function ($subQuery) use ($query) {
                   $subQuery->where('subcategoryname', 'like', '%' . $query . '%');
+              })
+              ->orWhereHas('shopbysport', function ($sportQuery) use ($query) {
+                  $sportQuery->where('sportname', 'like', '%' . $query . '%');
               });
         })
         ->latest()

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\FavouriteController;
 use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\ShopBySportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StripeWebhookController;
@@ -47,6 +48,20 @@ Route::prefix('subcategories')->group(function () {
     Route::delete('/{id}', [SubcategoryController::class, 'destroy']);
 
 });
+
+// ✅ ShopBySport Routes
+// Route::apiResource('shopbysports', ShopBySportController::class);
+
+// Route::get('/shopbysport', [ShopBySportController::class, 'index']);
+// Route::get('/shopbysport/{id}', [ShopBySportController::class, 'show']);
+Route::prefix('shopbysport')->group(function () {
+    Route::get('/', [ShopBySportController::class, 'index']);        // GET /api/shopbysport           - list all sports
+    Route::get('/{id}', [ShopBySportController::class, 'show']);    // GET /api/shopbysport/{id}      - show one sport + its products
+    Route::post('/', [ShopBySportController::class, 'store']);      // POST /api/shopbysport          - create new sport
+    Route::put('/{id}', [ShopBySportController::class, 'update']);  // PUT /api/shopbysport/{id}      - update sport by id
+    Route::delete('/{id}', [ShopBySportController::class, 'destroy']); // DELETE /api/shopbysport/{id}  - delete sport by id
+});
+
 
 // ✅ Guest Cart (Session-based)
 Route::get('/cart/session/{session_id}', [CartController::class, 'showBySession']);
