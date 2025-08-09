@@ -10,12 +10,17 @@ class Category extends Model
 
     protected $fillable = [
         'categoryname',
-        'subcategoryid',
+        // 'subcategoryid',
     ];
 
-    public function subcategory()
+    // public function subcategory()
+    // {
+    //     return $this->belongsTo(Subcategory::class, 'subcategoryid', 'subcategoryid');
+    // }
+
+    public function subcategories()
     {
-        return $this->belongsTo(Subcategory::class, 'subcategoryid', 'subcategoryid');
+        return $this->hasMany(Subcategory::class, 'category_id', 'categoryid');
     }
 
     public function products()

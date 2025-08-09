@@ -10,23 +10,21 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        return response()->json(Category::with('subcategory')->get());
+        return response()->json(Category::with('subcategories')->get());
     }
 
     public function show($id)
     {
-        $category = Category::with('subcategory')->findOrFail($id);
-        return response()->json($category);
+        return response()->json(Category::with('subcategories')->findOrFail($id));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'categoryname' => 'required|string|max:255',
-            'subcategoryid' => 'nullable|exists:subcategories,subcategoryid',
+            'categoryname' => 'required|string|max:255|unique:categories,categoryname'
         ]);
 
-        $category = Category::create($request->only(['categoryname', 'subcategoryid']));
+        $category = Category::create($request->only('categoryname'));
 
         return response()->json($category, 201);
     }
@@ -36,31 +34,17 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         $request->validate([
-            'categoryname' => 'required|string|max:255',
-            'subcategoryid' => 'nullable|exists:subcategories,subcategoryid',
+            'categoryname' => 'required|string|max:255|unique:categories,categoryname,' . $category->categoryid . ',categoryid'
         ]);
 
-        $category->update($request->only(['categoryname', 'subcategoryid']));
+        $category->update($request->only('categoryname'));
 
         return response()->json($category);
     }
 
     public function destroy($id)
     {
-        $category = Category::findOrFail($id);
-        $category->delete();
-
+        Category::findOrFail($id)->delete();
         return response()->json(['message' => 'Category deleted successfully.']);
     }
-
-    public function distinct()
-{
-    $categories = \DB::table('categories')
-        ->select('categoryname', \DB::raw('MIN(categoryid) as categoryid'))
-        ->groupBy('categoryname')
-        ->get();
-
-    return response()->json($categories);
-}
-
 }

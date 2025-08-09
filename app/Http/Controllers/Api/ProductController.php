@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;  // Import Log facade
 
 
+
 class ProductController extends Controller
 {
     // List all products
@@ -20,10 +21,21 @@ public function index(Request $request)
 
     // Search filter
 
+//     if ($request->filled('search')) {
+//     $keyword = $request->search;
+//     $query->where(function ($q) use ($keyword) {
+//         $q->where('productname', 'like', "%{$keyword}%")
+//           ->orWhereHas('subcategory', function ($q) use ($keyword) {
+//               $q->where('subcategoryname', 'like', "%{$keyword}%");
+//           });
+//     });
+// }
+
     if ($request->filled('search')) {
     $keyword = $request->search;
     $query->where(function ($q) use ($keyword) {
         $q->where('productname', 'like', "%{$keyword}%")
+          ->orWhere('productslug', 'like', "%{$keyword}%")   // <-- Added here
           ->orWhereHas('subcategory', function ($q) use ($keyword) {
               $q->where('subcategoryname', 'like', "%{$keyword}%");
           });
@@ -41,10 +53,7 @@ public function index(Request $request)
         }
     }
 
-    // Gender filter (single value)
-    // if ($request->filled('gender')) {
-    //     $query->where('gender', $request->input('gender'));
-    // }
+
 
     if ($request->filled('gender')) {
     $gender = $request->input('gender');
@@ -55,10 +64,6 @@ public function index(Request $request)
     }
 }
 
-    // Color filter (single value)
-    // if ($request->filled('color')) {
-    //     $query->where('color', $request->input('color'));
-    // }
 
 if ($request->filled('color')) {
     $color = $request->input('color');
@@ -69,12 +74,7 @@ if ($request->filled('color')) {
     }
 }
 
-    // Size filter (single value)
-    // if ($request->filled('sizevalue')) {
-    //     $query->whereHas('sizes', function ($q) use ($request) {
-    //         $q->where('sizevalue', $request->input('sizevalue'));
-    //     });
-    // }
+
 
 if ($request->filled('sizevalue')) {
     $sizes = $request->input('sizevalue');
@@ -87,35 +87,12 @@ if ($request->filled('sizevalue')) {
     });
 }
 
-//    if ($request->has('shopbysport_id')) {
-//     $query->where('shopbysport_id', $request->shopbysport_id);
-// }
 
     if ($request->has('shopbysportId')) {
     $shopbysportId = $request->input('shopbysportId');
     $query->where('shopbysport_id', $shopbysportId);
 }
 
-    // Price filter (single value)
-    // if ($request->filled('price')) {
-    //     $price = $request->input('price');
-    //     $query->where(function ($q) use ($price) {
-    //         switch ($price) {
-    //             case 'under_50':
-    //                 $q->where('price', '<', 50);
-    //                 break;
-    //             case '50_100':
-    //                 $q->whereBetween('price', [50, 100]);
-    //                 break;
-    //             case '101_199':
-    //                 $q->whereBetween('price', [101, 199]);
-    //                 break;
-    //             case 'over_200':
-    //                 $q->where('price', '>', 200);
-    //                 break;
-    //         }
-    //     });
-    // }
 
 if ($request->filled('price')) {
     $prices = $request->input('price');
@@ -197,6 +174,8 @@ if ($request->filled('price')) {
 
     $validated = $request->validate([
         'productname' => 'required|string',
+        'productslug' => 'nullable|string',
+        'isactive' => 'nullable|boolean',
         'productimage' => 'required|url',
         'productimages' => 'nullable|array',
         'productimages.*' => 'url',
@@ -267,12 +246,15 @@ if ($request->filled('price')) {
 
     $validated = $request->validate([
         'productname' => 'nullable|string',
+        'productslug' => 'nullable|string',
+        'isactive' => 'nullable|boolean',
         'productimage' => 'nullable|url',
         'productimages' => 'nullable|array',
         'productimages.*' => 'url',
         'productvideo' => 'nullable|url',
         'category_id' => 'nullable|exists:categories,categoryid',
         'subcategory_id' => 'nullable|exists:subcategories,subcategoryid',
+        'shopbysport_id' => 'nullable|integer',
         'color' => 'nullable|string',
         'price' => 'nullable|numeric',
         'discount' => 'nullable|numeric',
@@ -284,6 +266,13 @@ if ($request->filled('price')) {
         'size_ids' => 'nullable|array',
         'size_ids.*' => 'exists:sizes,id',
     ]);
+
+    // Manually update productslug if provided
+    if (isset($validated['productslug'])) {
+        $product->productslug = $validated['productslug'];
+        unset($validated['productslug']); // remove it so it doesn't get double updated
+    }
+
 
     $product->update($validated);
 

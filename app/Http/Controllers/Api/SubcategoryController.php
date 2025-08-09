@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Http\Controllers\Api;
 
@@ -10,23 +10,22 @@ class SubcategoryController extends Controller
 {
     public function index()
     {
-        return response()->json(Subcategory::all());
+        return response()->json(Subcategory::with('category')->get());
     }
 
     public function show($id)
     {
-        $subcategory = Subcategory::findOrFail($id);
-        return response()->json($subcategory);
+        return response()->json(Subcategory::with('category')->findOrFail($id));
     }
+
     public function store(Request $request)
     {
         $request->validate([
             'subcategoryname' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,categoryid'
         ]);
 
-        $subcategory = Subcategory::create([
-            'subcategoryname' => $request->subcategoryname,
-        ]);
+        $subcategory = Subcategory::create($request->only(['subcategoryname', 'category_id']));
 
         return response()->json($subcategory, 201);
     }
@@ -37,20 +36,17 @@ class SubcategoryController extends Controller
 
         $request->validate([
             'subcategoryname' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,categoryid'
         ]);
 
-        $subcategory->update([
-            'subcategoryname' => $request->subcategoryname,
-        ]);
+        $subcategory->update($request->only(['subcategoryname', 'category_id']));
 
         return response()->json($subcategory);
     }
 
     public function destroy($id)
     {
-        $subcategory = Subcategory::findOrFail($id);
-        $subcategory->delete();
-
+        Subcategory::findOrFail($id)->delete();
         return response()->json(['message' => 'Subcategory deleted successfully.']);
     }
 }
